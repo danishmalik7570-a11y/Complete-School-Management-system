@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}Course Categories - DNL Institute{% endblock %}
+
+{% block page_title %}Course Categories{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-lg shadow">
+    <div class="p-6 border-b border-gray-200">
+        <div class="flex justify-between items-center">
+            <h3 class="text-lg font-semibold text-gray-900">All Course Categories</h3>
+            <a href="{{ url_for('add_category') }}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors">
+                <i class="fas fa-plus mr-2"></i>Add Category
+            </a>
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
+        {% for category in categories %}
+        <div class="border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center">
+                    <div class="p-3 bg-blue-100 rounded-full">
+                        <i class="fas fa-laptop-code text-blue-600 text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <h4 class="text-lg font-semibold text-gray-900">{{ category.name }}</h4>
+                        <p class="text-sm text-gray-500">{{ category.students|length }} students enrolled</p>
+                    </div>
+                </div>
+                <div class="flex space-x-2">
+                    <a href="{{ url_for('edit_category', id=category.id) }}" class="text-blue-600 hover:text-blue-900">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                    <a href="{{ url_for('delete_category', id=category.id) }}" class="text-red-600 hover:text-red-900" onclick="return confirm('Are you sure? This will affect all enrolled students.')">
+                        <i class="fas fa-trash"></i>
+                    </a>
+                </div>
+            </div>
+            
+            {% if category.description %}
+            <p class="text-gray-600 text-sm mb-4">{{ category.description }}</p>
+            {% endif %}
+            
+            <div class="text-xs text-gray-500">
+                Created: {{ category.created_at | date }}
+            </div>
+        </div>
+        {% else %}
+        <div class="col-span-full text-center py-12">
+            <div class="mx-auto h-24 w-24 text-gray-400">
+                <i class="fas fa-tags text-6xl"></i>
+            </div>
+            <h3 class="mt-2 text-sm font-medium text-gray-900">No categories</h3>
+            <p class="mt-1 text-sm text-gray-500">Get started by creating a new course category.</p>
+            <div class="mt-6">
+                <a href="{{ url_for('add_category') }}" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+                    <i class="fas fa-plus mr-2"></i>
+                    Add Category
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

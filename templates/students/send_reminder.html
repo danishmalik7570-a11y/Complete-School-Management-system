@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}Send Fee Reminder - {{ student.full_name }} - DNL Institute{% endblock %}
+
+{% block page_title %}Send Payment Reminder{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex justify-between items-start mb-6">
+            <div>
+                <h3 class="text-xl font-semibold text-gray-900">Send Payment Reminder</h3>
+                <p class="text-gray-600">{{ student.full_name }} - {{ student.category.name }}</p>
+            </div>
+            <a href="{{ url_for('student_fees', id=student.id) }}" class="text-blue-600 hover:text-blue-800">
+                <i class="fas fa-arrow-left mr-2"></i>Back to Fees
+            </a>
+        </div>
+        
+        <!-- Fee Information -->
+        <div class="bg-red-50 p-4 rounded-lg mb-6">
+            <h4 class="font-semibold text-red-900 mb-3">Overdue Fee: {{ monthly_fee.fee_month }}</h4>
+            <div class="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                    <span class="text-red-700">Amount Due:</span>
+                    <div class="text-lg font-bold text-red-900">{{ monthly_fee.amount_due | currency }}</div>
+                </div>
+                <div>
+                    <span class="text-red-700">Due Date:</span>
+                    <div class="text-lg font-semibold text-gray-700">{{ monthly_fee.due_date | date }}</div>
+                </div>
+                <div>
+                    <span class="text-red-700">Days Overdue:</span>
+                    <div class="text-lg font-bold text-red-900">{{ monthly_fee.days_overdue }} days</div>
+                </div>
+                <div>
+                    <span class="text-red-700">Outstanding:</span>
+                    <div class="text-lg font-bold text-red-900">{{ monthly_fee.remaining_amount | currency }}</div>
+                </div>
+            </div>
+        </div>
+        
+        <form method="POST" class="space-y-6">
+            {{ form.hidden_tag() }}
+            
+            <div>
+                {{ form.reminder_type.label(class="block text-sm font-medium text-gray-700 mb-1") }}
+                {{ form.reminder_type(class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500") }}
+                {% if form.reminder_type.errors %}
+                    <p class="text-red-500 text-sm mt-1">{{ form.reminder_type.errors[0] }}</p>
+                {% endif %}
+            </div>
+            
+            <div>
+                {{ form.notes.label(class="block text-sm font-medium text-gray-700 mb-1") }}
+                {{ form.notes(class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500", 
+                              rows="4", 
+                              placeholder="Additional message for the reminder") }}
+                <p class="text-sm text-gray-500 mt-1">This message will be included with the reminder</p>
+            </div>
+            
+            <!-- Preview -->
+            <div class="bg-gray-50 p-4 rounded-md">
+                <h5 class="font-medium text-gray-900 mb-3">Reminder Preview</h5>
+                <div class="text-sm text-gray-700 space-y-2">
+                    <p><strong>To:</strong> {{ student.full_name }}</p>
+                    <p><strong>Contact:</strong> {{ student.student_contact or student.father_contact }}</p>
+                    <p><strong>Subject:</strong> Payment Reminder - {{ monthly_fee.fee_month }}</p>
+                    <div class="mt-3 p-3 bg-white border rounded">
+                        <p>Dear {{ student.full_name }},</p>
+                        <p class="mt-2">This is a reminder that your monthly fee payment for <strong>{{ monthly_fee.fee_month }}</strong> is overdue.</p>
+                        <p class="mt-2">
+                            <strong>Amount Due:</strong> {{ monthly_fee.remaining_amount | currency }}<br>
+                            <strong>Due Date:</strong> {{ monthly_fee.due_date | date }}<br>
+                            <strong>Days Overdue:</strong> {{ monthly_fee.days_overdue }} days
+                        </p>
+                        <p class="mt-2">Please make your payment as soon as possible to avoid any inconvenience.</p>
+                        <p class="mt-2">Thank you for your attention to this matter.</p>
+                        <p class="mt-3">
+                            Best regards,<br>
+                            DNL Institute of Information Technology
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Buttons -->
+            <div class="flex justify-end space-x-4 pt-6 border-t">
+                <a href="{{ url_for('student_fees', id=student.id) }}" 
+                   class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+                    Cancel
+                </a>
+                <button type="submit" 
+                        class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium">
+                    <i class="fas fa-bell mr-2"></i>Send Reminder
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

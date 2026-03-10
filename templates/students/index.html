@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}Students - DNL Institute{% endblock %}
+
+{% block page_title %}Student Management{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-lg shadow">
+    <div class="p-6 border-b border-gray-200">
+        <div class="flex justify-between items-center">
+            <h3 class="text-lg font-semibold text-gray-900">All Students</h3>
+            <div class="flex space-x-3">
+                <a href="{{ url_for('add_student') }}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors">
+                    <i class="fas fa-plus mr-2"></i>Add Student
+                </a>
+                <button onclick="window.print()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition-colors">
+                    <i class="fas fa-print mr-2"></i>Print List
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Course</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fee Status</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Admission Date</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for student in students.items %}
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div>
+                            <div class="text-sm font-medium text-gray-900">{{ student.full_name }}</div>
+                            <div class="text-sm text-gray-500">Father: {{ student.father_name }}</div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">{{ student.student_contact or 'N/A' }}</div>
+                        <div class="text-sm text-gray-500">{{ student.father_contact or 'N/A' }}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            {{ student.category.name }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">{{ student.total_paid | currency }} / {{ student.total_fee | currency }}</div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            {% set percentage = (student.total_paid / student.total_fee * 100) if student.total_fee > 0 else 0 %}
+                            <div class="bg-blue-600 h-2 rounded-full" style="width: {{ percentage }}%"></div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {{ student.admission_date | date }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div class="flex space-x-2">
+                            <a href="{{ url_for('edit_student', id=student.id) }}" class="text-blue-600 hover:text-blue-900" title="Edit Student">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="{{ url_for('student_fees', id=student.id) }}" class="text-orange-600 hover:text-orange-900" title="Manage Fees">
+                                <i class="fas fa-file-invoice-dollar"></i>
+                            </a>
+                            <a href="{{ url_for('add_payment', id=student.id) }}" class="text-green-600 hover:text-green-900" title="Add Payment">
+                                <i class="fas fa-money-bill"></i>
+                            </a>
+                            <a href="{{ url_for('admission_slip', id=student.id) }}" class="text-purple-600 hover:text-purple-900" title="Print Admission Slip" target="_blank">
+                                <i class="fas fa-print"></i>
+                            </a>
+                            <a href="{{ url_for('delete_student', id=student.id) }}" class="text-red-600 hover:text-red-900" onclick="return confirm('Are you sure?')" title="Delete Student">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="px-6 py-4 text-center text-gray-500">No students found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Pagination -->
+    {% if students.pages > 1 %}
+    <div class="px-6 py-3 border-t border-gray-200">
+        <nav class="flex justify-between items-center">
+            <div>
+                <p class="text-sm text-gray-700">
+                    Showing {{ students.per_page * (students.page - 1) + 1 }} to 
+                    {{ students.per_page * students.page if students.page < students.pages else students.total }} of 
+                    {{ students.total }} entries
+                </p>
+            </div>
+            <div class="flex space-x-1">
+                {% if students.has_prev %}
+                    <a href="{{ url_for('students', page=students.prev_num) }}" class="px-3 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300">Previous</a>
+                {% endif %}
+                {% for page_num in students.iter_pages() %}
+                    {% if page_num %}
+                        {% if page_num != students.page %}
+                            <a href="{{ url_for('students', page=page_num) }}" class="px-3 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300">{{ page_num }}</a>
+                        {% else %}
+                            <span class="px-3 py-2 bg-blue-600 text-white rounded">{{ page_num }}</span>
+                        {% endif %}
+                    {% else %}
+                        <span class="px-3 py-2">...</span>
+                    {% endif %}
+                {% endfor %}
+                {% if students.has_next %}
+                    <a href="{{ url_for('students', page=students.next_num) }}" class="px-3 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300">Next</a>
+                {% endif %}
+            </div>
+        </nav>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

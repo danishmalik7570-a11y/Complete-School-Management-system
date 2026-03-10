@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+
+{% block title %}Fee Collection Report - DNL Institute{% endblock %}
+
+{% block page_title %}Fee Collection Report{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <div class="flex justify-between items-center">
+        <p class="text-gray-600">Comprehensive fee collection and payment analysis</p>
+        <div class="space-x-4">
+            <a href="{{ url_for('overdue_fees') }}" class="text-red-600 hover:text-red-800">
+                <i class="fas fa-exclamation-triangle mr-2"></i>View Overdue
+            </a>
+            <a href="{{ url_for('finance') }}" class="text-blue-600 hover:text-blue-800">
+                <i class="fas fa-arrow-left mr-2"></i>Back to Finance
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Summary Statistics -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+    <div class="bg-blue-50 p-6 rounded-lg shadow">
+        <div class="text-2xl font-bold text-blue-600">{{ total_fees_due | currency }}</div>
+        <div class="text-sm text-gray-600">Total Fees Due</div>
+        <div class="text-xs text-gray-500 mt-1">All monthly fees</div>
+    </div>
+    <div class="bg-green-50 p-6 rounded-lg shadow">
+        <div class="text-2xl font-bold text-green-600">{{ total_fees_paid | currency }}</div>
+        <div class="text-sm text-gray-600">Total Fees Collected</div>
+        <div class="text-xs text-gray-500 mt-1">Monthly payments</div>
+    </div>
+    <div class="bg-purple-50 p-6 rounded-lg shadow">
+        <div class="text-2xl font-bold text-purple-600">{{ total_advance_payments | currency }}</div>
+        <div class="text-sm text-gray-600">Advance Payments</div>
+        <div class="text-xs text-gray-500 mt-1">Upfront payments</div>
+    </div>
+    <div class="bg-{{ 'red' if overdue_count > 0 else 'green' }}-50 p-6 rounded-lg shadow">
+        <div class="text-2xl font-bold text-{{ 'red' if overdue_count > 0 else 'green' }}-600">{{ overdue_count }}</div>
+        <div class="text-sm text-gray-600">Overdue Fees</div>
+        <div class="text-xs text-gray-500 mt-1">Require attention</div>
+    </div>
+</div>
+
+<!-- Collection Rate -->
+<div class="bg-white rounded-lg shadow p-6 mb-6">
+    <h3 class="text-lg font-semibold text-gray-900 mb-4">Collection Performance</h3>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="text-center">
+            <div class="text-3xl font-bold text-gray-900">
+                {{ ((total_fees_paid / total_fees_due * 100) if total_fees_due > 0 else 0) | round(1) }}%
+            </div>
+            <div class="text-sm text-gray-600">Collection Rate</div>
+            <div class="mt-2 bg-gray-200 rounded-full h-2">
+                <div class="bg-green-600 h-2 rounded-full" 
+                     style="width: {{ ((total_fees_paid / total_fees_due * 100) if total_fees_due > 0 else 0) }}%"></div>
+            </div>
+        </div>
+        <div class="text-center">
+            <div class="text-3xl font-bold text-gray-900">
+                {{ (total_fees_due - total_fees_paid) | currency }}
+            </div>
+            <div class="text-sm text-gray-600">Outstanding Balance</div>
+            <div class="text-xs text-gray-500 mt-1">Monthly fees pending</div>
+        </div>
+        <div class="text-center">
+            <div class="text-3xl font-bold text-gray-900">
+                {{ (total_fees_paid + total_advance_payments) | currency }}
+            </div>
+            <div class="text-sm text-gray-600">Total Revenue</div>
+            <div class="text-xs text-gray-500 mt-1">All collections</div>
+        </div>
+    </div>
+</div>
+
+<!-- Monthly Breakdown -->
+<div class="bg-white rounded-lg shadow">
+    <div class="p-6 border-b border-gray-200">
+        <h3 class="text-lg font-semibold text-gray-900">Monthly Fee Breakdown</h3>
+    </div>
+    
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Month</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Expected</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Collected</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Outstanding</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Collection %</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for stat in monthly_stats %}
+                {% set collection_rate = ((stat.total_paid or 0) / stat.total_due * 100) if stat.total_due > 0 else 0 %}
+                {% set outstanding = stat.total_due - (stat.total_paid or 0) %}
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {{ stat.fee_month }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {{ stat.total_due | currency }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {{ (stat.total_paid or 0) | currency }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {{ outstanding | currency }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <div class="flex items-center">
+                            <span class="mr-2">{{ collection_rate | round(1) }}%</span>
+                            <div class="flex-1 bg-gray-200 rounded-full h-2 w-16">
+                                <div class="bg-{{ 'green' if collection_rate >= 90 else 'yellow' if collection_rate >= 70 else 'red' }}-600 h-2 rounded-full" 
+                                     style="width: {{ collection_rate }}%"></div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        {% if collection_rate >= 90 %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                <i class="fas fa-check mr-1"></i>Excellent
+                            </span>
+                        {% elif collection_rate >= 70 %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                <i class="fas fa-clock mr-1"></i>Good
+                            </span>
+                        {% elif collection_rate >= 50 %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                                <i class="fas fa-exclamation mr-1"></i>Needs Attention
+                            </span>
+                        {% else %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                <i class="fas fa-times mr-1"></i>Critical
+                            </span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="px-6 py-4 text-center text-gray-500">
+                        No monthly fee data available yet.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Report Actions -->
+<div class="mt-6 bg-white rounded-lg shadow p-6">
+    <h4 class="text-lg font-semibold text-gray-900 mb-4">Report Actions</h4>
+    <div class="flex flex-wrap gap-4">
+        <button onclick="window.print()" 
+                class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+            <i class="fas fa-print mr-2"></i>Print Report
+        </button>
+        <button onclick="exportReport('csv')" 
+                class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+            <i class="fas fa-file-csv mr-2"></i>Export CSV
+        </button>
+        <button onclick="exportReport('pdf')" 
+                class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+            <i class="fas fa-file-pdf mr-2"></i>Export PDF
+        </button>
+        <a href="{{ url_for('overdue_fees') }}" 
+           class="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700">
+            <i class="fas fa-exclamation-triangle mr-2"></i>View Overdue Details
+        </a>
+    </div>
+</div>
+
+<script>
+function exportReport(format) {
+    // In a real implementation, this would generate the report in the specified format
+    alert(`${format.toUpperCase()} export functionality will be implemented in next version.`);
+}
+
+// Print styles
+const printCSS = `
+    @media print {
+        .no-print { display: none !important; }
+        .print-break { page-break-after: always; }
+        body { font-size: 12px; }
+        .shadow { box-shadow: none !important; }
+    }
+`;
+
+// Add print styles to page
+const style = document.createElement('style');
+style.textContent = printCSS;
+document.head.appendChild(style);
+</script>
+{% endblock %}

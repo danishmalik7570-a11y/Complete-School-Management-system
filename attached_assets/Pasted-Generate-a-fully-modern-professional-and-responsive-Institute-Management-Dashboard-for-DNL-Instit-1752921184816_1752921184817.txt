@@ -1,0 +1,116 @@
+Generate a fully modern, professional, and responsive Institute Management Dashboard for "DNL Institute of Information Technology" using the following stack:
+
+🔧 Technologies:
+Frontend: HTML5, CSS3, Bootstrap 5, TailwindCSS
+
+Backend: Python (Django Framework)
+
+Database: SQLite3
+
+No other backend or database technology should be used.
+
+🎯 Project Description:
+Build an advanced dashboard web application for an IT Institute that includes full features for managing:
+
+Students
+
+Teachers/Instructors
+
+Course Categories
+
+Admissions
+
+Revenue and Expenses Tracking
+
+🧱 Pages & Functionalities:
+🏫 Course Categories Section:
+Add/Edit/Delete course categories
+
+Example categories: Web Development, Graphic Designing, Python Programming, App Development, Amazon & Ecommerce, IELTS, Spoken English, Digital & Social Marketing
+
+👨‍🎓 Student Management:
+Add/Edit/Delete student records
+
+Input fields:
+
+Full Name
+
+Father Name
+
+Student Contact
+
+Father Contact
+
+CNIC (Father and Student both)
+
+Address
+
+Course Selected
+
+Batch Timings (auto-filled with current date & time)
+
+Fee (Total + 6 monthly installments auto-calculated)
+
+Option to add monthly fee entries and track payment history
+
+Option to print admission slip with:
+
+Institute Logo + “Admission Confirmed: DNL Institute of Information Technology”
+
+Print full student list
+
+👨‍🏫 Instructor Management:
+Add/Edit/Delete instructor details
+
+Assign instructors to one or multiple categories
+
+💰 Revenue & Expenses:
+Track total revenue based on collected student fees
+
+Add/Edit/Delete expenses (e.g. rent, salaries, electricity)
+
+Net profit = Total Revenue - Total Expenses
+
+📊 Dashboard Summary (Main Page):
+Total Students
+
+Total Instructors
+
+Total Revenue (Rs.)
+
+Total Expenses (Rs.)
+
+Net Profit (Rs.)
+
+🖨️ Print & Export Features:
+Print:
+
+Individual admission confirmation slips
+
+Full list of students
+
+Optional export in PDF
+
+🌟 Styling Requirements:
+High-level UI with TailwindCSS + Bootstrap styling
+
+Sidebar navigation with icons
+
+Smooth transitions
+
+Mobile + desktop responsive
+
+Use modern dashboard UI components (cards, tables, forms, modals)
+
+✅ Additional Requirements:
+Django Admin for backend superuser control
+
+Form validation
+
+Secure models with proper relations (Students linked with Courses, Instructors linked with Categories, etc.)
+
+SQLite3 only for data storage
+
+Dark/Light theme toggle (optional)
+
+Build this full-stack web app in a modular and scalable way using Django's best practices.

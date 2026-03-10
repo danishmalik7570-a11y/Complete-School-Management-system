@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block title %}Finance - DNL Institute{% endblock %}
+
+{% block page_title %}Financial Management{% endblock %}
+
+{% block content %}
+<!-- Financial Summary Cards -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-8">
+    <div class="bg-white rounded-lg shadow p-4 md:p-6">
+        <div class="flex items-start min-w-0">
+            <div class="p-2 md:p-3 rounded-full bg-green-100 text-green-600 flex-shrink-0">
+                <i class="fas fa-arrow-up text-lg md:text-2xl"></i>
+            </div>
+            <div class="ml-3 md:ml-4 min-w-0 flex-1">
+                <p class="text-sm font-medium text-gray-600">Total Revenue</p>
+                <p class="text-lg md:text-2xl font-semibold text-green-600 truncate" title="{{ total_revenue | currency }}">{{ total_revenue | currency }}</p>
+                <div class="text-xs text-gray-500 mt-1 break-words">
+                    <div class="mb-1">Monthly: {{ monthly_fee_payments | currency }}</div>
+                    <div class="mb-1">Advance: {{ advance_payments | currency }}</div>
+                    <div>Other: {{ regular_payments | currency }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow p-4 md:p-6">
+        <div class="flex items-center min-w-0">
+            <div class="p-2 md:p-3 rounded-full bg-red-100 text-red-600 flex-shrink-0">
+                <i class="fas fa-arrow-down text-lg md:text-2xl"></i>
+            </div>
+            <div class="ml-3 md:ml-4 min-w-0 flex-1">
+                <p class="text-sm font-medium text-gray-600">Total Expenses</p>
+                <p class="text-lg md:text-2xl font-semibold text-red-600 truncate" title="{{ total_expenses | currency }}">{{ total_expenses | currency }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow p-4 md:p-6">
+        <div class="flex items-center min-w-0">
+            <div class="p-2 md:p-3 rounded-full {{ 'bg-green-100 text-green-600' if net_profit >= 0 else 'bg-red-100 text-red-600' }} flex-shrink-0">
+                <i class="fas fa-chart-line text-lg md:text-2xl"></i>
+            </div>
+            <div class="ml-3 md:ml-4 min-w-0 flex-1">
+                <p class="text-sm font-medium text-gray-600">Net Profit</p>
+                <p class="text-lg md:text-2xl font-semibold {{ 'text-green-600' if net_profit >= 0 else 'text-red-600' }} truncate" title="{{ net_profit | currency }}">{{ net_profit | currency }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Revenue Breakdown Section -->
+<div class="bg-white rounded-lg shadow mb-8">
+    <div class="p-6 border-b border-gray-200">
+        <h3 class="text-lg font-semibold text-gray-900">Revenue Breakdown</h3>
+    </div>
+    <div class="p-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="text-center">
+                <div class="text-3xl font-bold text-blue-600">{{ monthly_fee_payments | currency }}</div>
+                <div class="text-sm text-gray-600">Monthly Fee Payments</div>
+                <div class="mt-2 bg-gray-200 rounded-full h-2">
+                    <div class="bg-blue-600 h-2 rounded-full" style="width: {{ ((monthly_fee_payments / total_revenue * 100) if total_revenue > 0 else 0) }}%"></div>
+                </div>
+            </div>
+            <div class="text-center">
+                <div class="text-3xl font-bold text-green-600">{{ advance_payments | currency }}</div>
+                <div class="text-sm text-gray-600">Advance Payments</div>
+                <div class="mt-2 bg-gray-200 rounded-full h-2">
+                    <div class="bg-green-600 h-2 rounded-full" style="width: {{ ((advance_payments / total_revenue * 100) if total_revenue > 0 else 0) }}%"></div>
+                </div>
+            </div>
+            <div class="text-center">
+                <div class="text-3xl font-bold text-purple-600">{{ regular_payments | currency }}</div>
+                <div class="text-sm text-gray-600">Other Payments</div>
+                <div class="mt-2 bg-gray-200 rounded-full h-2">
+                    <div class="bg-purple-600 h-2 rounded-full" style="width: {{ ((regular_payments / total_revenue * 100) if total_revenue > 0 else 0) }}%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Expenses Section -->
+<div class="bg-white rounded-lg shadow">
+    <div class="p-6 border-b border-gray-200">
+        <div class="flex justify-between items-center">
+            <h3 class="text-lg font-semibold text-gray-900">Recent Expenses</h3>
+            <a href="{{ url_for('add_expense') }}" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition-colors">
+                <i class="fas fa-plus mr-2"></i>Add Expense
+            </a>
+        </div>
+    </div>
+    
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Expense</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for expense in recent_expenses %}
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div>
+                            <div class="text-sm font-medium text-gray-900">{{ expense.title }}</div>
+                            {% if expense.description %}
+                                <div class="text-sm text-gray-500">{{ expense.description[:50] }}{% if expense.description|length > 50 %}...{% endif %}</div>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                            {% if expense.category == 'rent' %}bg-purple-100 text-purple-800
+                            {% elif expense.category == 'salary' %}bg-blue-100 text-blue-800
+                            {% elif expense.category == 'utilities' %}bg-yellow-100 text-yellow-800
+                            {% elif expense.category == 'supplies' %}bg-green-100 text-green-800
+                            {% elif expense.category == 'maintenance' %}bg-orange-100 text-orange-800
+                            {% else %}bg-gray-100 text-gray-800{% endif %}">
+                            {{ expense.category.title() }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-red-600">
+                        {{ expense.amount | currency }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {{ expense.expense_date | date }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div class="flex space-x-2">
+                            <a href="{{ url_for('edit_expense', id=expense.id) }}" class="text-blue-600 hover:text-blue-900">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="{{ url_for('delete_expense', id=expense.id) }}" class="text-red-600 hover:text-red-900" onclick="return confirm('Are you sure?')">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="px-6 py-4 text-center text-gray-500">No expenses recorded yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

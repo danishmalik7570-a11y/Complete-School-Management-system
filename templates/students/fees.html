@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+
+{% block title %}Student Fees - {{ student.full_name }} - DNL Institute{% endblock %}
+
+{% block page_title %}Fee Management - {{ student.full_name }}{% endblock %}
+
+{% block content %}
+<!-- Student Info Header -->
+<div class="bg-white rounded-lg shadow p-6 mb-6">
+    <div class="flex justify-between items-start">
+        <div>
+            <h3 class="text-xl font-semibold text-gray-900">{{ student.full_name }}</h3>
+            <p class="text-gray-600">{{ student.category.name }} • Admission: {{ student.admission_date | date }}</p>
+        </div>
+        <a href="{{ url_for('students') }}" class="text-blue-600 hover:text-blue-800">
+            <i class="fas fa-arrow-left mr-2"></i>Back to Students
+        </a>
+    </div>
+    
+    <!-- Fee Summary Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
+        <div class="bg-blue-50 p-4 rounded-lg">
+            <div class="text-2xl font-bold text-blue-600">{{ student.total_fee | currency }}</div>
+            <div class="text-sm text-gray-600">Total Course Fee</div>
+        </div>
+        <div class="bg-green-50 p-4 rounded-lg">
+            <div class="text-2xl font-bold text-green-600">{{ student.advance_payment | currency }}</div>
+            <div class="text-sm text-gray-600">Advance Payment</div>
+        </div>
+        <div class="bg-purple-50 p-4 rounded-lg">
+            <div class="text-2xl font-bold text-purple-600">{{ student.total_paid | currency }}</div>
+            <div class="text-sm text-gray-600">Total Paid Till Now</div>
+        </div>
+        <div class="bg-orange-50 p-4 rounded-lg">
+            <div class="text-2xl font-bold text-orange-600">{{ student.remaining_balance | currency }}</div>
+            <div class="text-sm text-gray-600">Remaining Due</div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Info -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+    <div class="bg-white rounded-lg shadow p-6">
+        <h4 class="font-semibold text-gray-900 mb-3">Payment Status</h4>
+        {% if student.last_paid_month %}
+            <p class="text-green-600 mb-2">
+                <i class="fas fa-check-circle mr-2"></i>
+                Last Paid: {{ student.last_paid_month }}
+            </p>
+        {% else %}
+            <p class="text-gray-500 mb-2">
+                <i class="fas fa-info-circle mr-2"></i>
+                No payments yet
+            </p>
+        {% endif %}
+        
+        {% if student.next_due_month %}
+            <p class="text-orange-600">
+                <i class="fas fa-calendar-alt mr-2"></i>
+                Next Due: {{ student.next_due_month.fee_month }} 
+                <span class="text-sm">({{ student.next_due_month.due_date | date }})</span>
+            </p>
+        {% endif %}
+    </div>
+    
+    <div class="bg-white rounded-lg shadow p-6">
+        <h4 class="font-semibold text-gray-900 mb-3">Quick Actions</h4>
+        <div class="space-y-2">
+            {% if student.next_due_month %}
+                <a href="{{ url_for('pay_monthly_fee', student_id=student.id, fee_id=student.next_due_month.id) }}" 
+                   class="block w-full bg-green-600 text-white text-center py-2 px-4 rounded hover:bg-green-700 transition-colors">
+                    <i class="fas fa-credit-card mr-2"></i>Pay Next Due
+                </a>
+            {% endif %}
+            <a href="{{ url_for('add_monthly_fee', student_id=student.id) }}" 
+               class="block w-full bg-blue-600 text-white text-center py-2 px-4 rounded hover:bg-blue-700 transition-colors">
+                <i class="fas fa-plus mr-2"></i>Add Monthly Fee
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Monthly Fees Table -->
+<div class="bg-white rounded-lg shadow">
+    <div class="p-6 border-b border-gray-200">
+        <h3 class="text-lg font-semibold text-gray-900">Monthly Fee Schedule</h3>
+    </div>
+    
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Month</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount Due</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount Paid</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Remaining</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Due Date</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for fee in monthly_fees %}
+                <tr class="{{ 'bg-red-50' if fee.is_overdue else '' }}">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {{ fee.fee_month }}
+                        {% if fee.is_overdue %}
+                            <i class="fas fa-exclamation-triangle text-red-500 ml-2" title="Overdue"></i>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {{ fee.amount_due | currency }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {{ (fee.amount_paid or 0) | currency }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {{ fee.remaining_amount | currency }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {{ fee.due_date | date }}
+                        {% if fee.paid_date %}
+                            <br><small class="text-green-600">Paid: {{ fee.paid_date | date }}</small>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        {% if fee.payment_status == 'Paid' %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                <i class="fas fa-check mr-1"></i>Paid
+                            </span>
+                        {% elif fee.payment_status == 'Partial' %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                <i class="fas fa-clock mr-1"></i>Partial
+                            </span>
+                        {% elif fee.payment_status == 'Overdue' %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                <i class="fas fa-exclamation-triangle mr-1"></i>Overdue
+                            </span>
+                        {% else %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                <i class="fas fa-hourglass-half mr-1"></i>Pending
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div class="flex space-x-2">
+                            {% if not fee.is_paid %}
+                                <a href="{{ url_for('pay_monthly_fee', student_id=student.id, fee_id=fee.id) }}" 
+                                   class="text-green-600 hover:text-green-900" title="Make Payment">
+                                    <i class="fas fa-credit-card"></i>
+                                </a>
+                                <a href="{{ url_for('send_fee_reminder', student_id=student.id, fee_id=fee.id) }}" 
+                                   class="text-blue-600 hover:text-blue-900" title="Send Reminder">
+                                    <i class="fas fa-bell"></i>
+                                </a>
+                            {% endif %}
+                            <button onclick="viewFeeDetails({{ fee.id }})" 
+                                    class="text-purple-600 hover:text-purple-900" title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="px-6 py-4 text-center text-gray-500">
+                        No monthly fees scheduled yet.
+                        <a href="{{ url_for('add_monthly_fee', student_id=student.id) }}" class="text-blue-600 hover:text-blue-800 ml-2">
+                            Add Monthly Fee
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Fee Details Modal (placeholder for future enhancement) -->
+<div id="feeModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <h3 class="text-lg font-medium text-gray-900" id="modalTitle">Fee Details</h3>
+            <div class="mt-2" id="modalContent">
+                <!-- Content will be loaded dynamically -->
+            </div>
+            <div class="items-center px-4 py-3">
+                <button onclick="closeFeeModal()" class="px-4 py-2 bg-gray-500 text-white text-base font-medium rounded-md shadow-sm hover:bg-gray-600">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function viewFeeDetails(feeId) {
+    // This would typically fetch details via AJAX
+    document.getElementById('modalContent').innerHTML = `
+        <p class="text-sm text-gray-500">Fee ID: ${feeId}</p>
+        <p class="text-sm text-gray-500">Detailed information about this fee would be displayed here.</p>
+    `;
+    document.getElementById('feeModal').classList.remove('hidden');
+}
+
+function closeFeeModal() {
+    document.getElementById('feeModal').classList.add('hidden');
+}
+
+// Close modal when clicking outside
+document.getElementById('feeModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeFeeModal();
+    }
+});
+</script>
+{% endblock %}

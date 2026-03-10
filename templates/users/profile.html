@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}Profile - DNL Institute{% endblock %}
+{% block page_title %}My Profile{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">User Profile</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label font-weight-bold">Full Name</label>
+                            <p class="form-control-plaintext">{{ user.full_name }}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label font-weight-bold">Username</label>
+                            <p class="form-control-plaintext">{{ user.username }}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label font-weight-bold">Email</label>
+                            <p class="form-control-plaintext">{{ user.email }}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label font-weight-bold">Role</label>
+                            <p class="form-control-plaintext">
+                                <span class="badge {% if user.is_admin() %}bg-danger{% else %}bg-primary{% endif %} fs-6">
+                                    {% if user.is_admin() %}
+                                        <i class="fas fa-crown me-1"></i>Administrator
+                                    {% else %}
+                                        <i class="fas fa-user me-1"></i>Employee
+                                    {% endif %}
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label font-weight-bold">Account Status</label>
+                            <p class="form-control-plaintext">
+                                <span class="badge {% if user.is_active %}bg-success{% else %}bg-secondary{% endif %} fs-6">
+                                    {% if user.is_active %}Active{% else %}Inactive{% endif %}
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label font-weight-bold">Member Since</label>
+                            <p class="form-control-plaintext">{{ user.created_at | date }}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                {% if user.last_login %}
+                <div class="mb-3">
+                    <label class="form-label font-weight-bold">Last Login</label>
+                    <p class="form-control-plaintext">{{ user.last_login.strftime('%B %d, %Y at %I:%M %p') }}</p>
+                </div>
+                {% endif %}
+                
+                <div class="mt-4">
+                    <a href="{{ url_for('change_password') }}" class="btn btn-primary">
+                        <i class="fas fa-key me-2"></i>Change Password
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">Access Permissions</h6>
+            </div>
+            <div class="card-body">
+                {% if user.is_admin() %}
+                <div class="mb-3">
+                    <h6 class="text-danger">
+                        <i class="fas fa-crown me-2"></i>Administrator Access
+                    </h6>
+                    <ul class="list-unstyled small">
+                        <li><i class="fas fa-check text-success me-2"></i>View financial data</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Manage expenses</li>
+                        <li><i class="fas fa-check text-success me-2"></i>View revenue reports</li>
+                        <li><i class="fas fa-check text-success me-2"></i>User management</li>
+                        <li><i class="fas fa-check text-success me-2"></i>All system features</li>
+                    </ul>
+                </div>
+                {% else %}
+                <div class="mb-3">
+                    <h6 class="text-primary">
+                        <i class="fas fa-user me-2"></i>Employee Access
+                    </h6>
+                    <ul class="list-unstyled small">
+                        <li><i class="fas fa-check text-success me-2"></i>Student management</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Instructor management</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Payment processing</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Fee management</li>
+                        <li><i class="fas fa-times text-danger me-2"></i>Financial overview</li>
+                        <li><i class="fas fa-times text-danger me-2"></i>User management</li>
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

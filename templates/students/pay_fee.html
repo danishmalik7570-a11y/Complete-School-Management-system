@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block title %}Pay Monthly Fee - {{ student.full_name }} - DNL Institute{% endblock %}
+
+{% block page_title %}Payment for {{ student.full_name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <!-- Fee Details Card -->
+    <div class="bg-white rounded-lg shadow p-6 mb-6">
+        <div class="flex justify-between items-start mb-4">
+            <div>
+                <h3 class="text-xl font-semibold text-gray-900">{{ student.full_name }}</h3>
+                <p class="text-gray-600">{{ student.category.name }}</p>
+            </div>
+            <a href="{{ url_for('student_fees', id=student.id) }}" class="text-blue-600 hover:text-blue-800">
+                <i class="fas fa-arrow-left mr-2"></i>Back to Fees
+            </a>
+        </div>
+        
+        <!-- Fee Information -->
+        <div class="bg-blue-50 p-4 rounded-lg">
+            <h4 class="font-semibold text-blue-900 mb-3">Fee Details for {{ monthly_fee.fee_month }}</h4>
+            <div class="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                    <span class="text-blue-700">Amount Due:</span>
+                    <div class="text-xl font-bold text-blue-900">{{ monthly_fee.amount_due | currency }}</div>
+                </div>
+                <div>
+                    <span class="text-blue-700">Already Paid:</span>
+                    <div class="text-xl font-bold text-green-600">{{ (monthly_fee.amount_paid or 0) | currency }}</div>
+                </div>
+                <div>
+                    <span class="text-blue-700">Remaining:</span>
+                    <div class="text-xl font-bold text-orange-600">{{ monthly_fee.remaining_amount | currency }}</div>
+                </div>
+                <div>
+                    <span class="text-blue-700">Due Date:</span>
+                    <div class="text-lg font-semibold text-gray-700">{{ monthly_fee.due_date | date }}</div>
+                </div>
+            </div>
+            
+            {% if monthly_fee.is_overdue %}
+                <div class="mt-3 p-3 bg-red-100 rounded border border-red-200">
+                    <p class="text-red-700 text-sm">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>
+                        This fee is overdue. Please make payment as soon as possible.
+                    </p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Payment Form -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h4 class="text-lg font-semibold text-gray-900 mb-6">Make Payment</h4>
+        
+        <form method="POST" class="space-y-6">
+            {{ form.hidden_tag() }}
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    {{ form.amount_paid.label(class="block text-sm font-medium text-gray-700 mb-1") }}
+                    {{ form.amount_paid(class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500", 
+                                        max=monthly_fee.remaining_amount, 
+                                        value=monthly_fee.remaining_amount) }}
+                    {% if form.amount_paid.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.amount_paid.errors[0] }}</p>
+                    {% endif %}
+                    <p class="text-sm text-gray-500 mt-1">Maximum: {{ monthly_fee.remaining_amount | currency }}</p>
+                </div>
+                
+                <div>
+                    {{ form.payment_method.label(class="block text-sm font-medium text-gray-700 mb-1") }}
+                    {{ form.payment_method(class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500") }}
+                </div>
+            </div>
+            
+            <div>
+                {{ form.notes.label(class="block text-sm font-medium text-gray-700 mb-1") }}
+                {{ form.notes(class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500", 
+                              rows="3", 
+                              placeholder="Optional payment notes or receipt reference") }}
+            </div>
+            
+            <!-- Payment Summary -->
+            <div class="bg-gray-50 p-4 rounded-md">
+                <h5 class="font-medium text-gray-900 mb-3">Payment Summary</h5>
+                <div class="space-y-2 text-sm">
+                    <div class="flex justify-between">
+                        <span>Amount Due:</span>
+                        <span class="font-medium">{{ monthly_fee.amount_due | currency }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Previously Paid:</span>
+                        <span class="font-medium text-green-600">{{ (monthly_fee.amount_paid or 0) | currency }}</span>
+                    </div>
+                    <div class="flex justify-between border-t pt-2">
+                        <span class="font-medium">Remaining Amount:</span>
+                        <span class="font-bold text-orange-600">{{ monthly_fee.remaining_amount | currency }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Buttons -->
+            <div class="flex justify-end space-x-4 pt-6 border-t">
+                <a href="{{ url_for('student_fees', id=student.id) }}" 
+                   class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+                    Cancel
+                </a>
+                <button type="submit" 
+                        class="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 font-medium">
+                    <i class="fas fa-credit-card mr-2"></i>Process Payment
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// Auto-fill the payment amount with remaining balance
+document.addEventListener('DOMContentLoaded', function() {
+    const amountInput = document.querySelector('input[name="amount_paid"]');
+    const remainingAmount = {{ monthly_fee.remaining_amount }};
+    
+    // Set default value to remaining amount
+    if (amountInput && !amountInput.value) {
+        amountInput.value = remainingAmount.toFixed(2);
+    }
+    
+    // Validate amount doesn't exceed remaining
+    amountInput.addEventListener('input', function() {
+        const value = parseFloat(this.value) || 0;
+        if (value > remainingAmount) {
+            this.value = remainingAmount.toFixed(2);
+        }
+    });
+});
+</script>
+{% endblock %}

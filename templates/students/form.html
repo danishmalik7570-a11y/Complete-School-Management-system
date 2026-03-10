@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} - DNL Institute{% endblock %}
+
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="bg-white rounded-lg shadow p-6">
+        <form method="POST" class="space-y-6">
+            {{ form.hidden_tag() }}
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Student Information -->
+                <div class="space-y-4">
+                    <h4 class="text-lg font-semibold text-gray-900 border-b pb-2">Student Information</h4>
+                    
+                    <div>
+                        {{ form.full_name.label(class="block text-sm font-medium text-gray-700 mb-1") }}
+                        {{ form.full_name(class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500") }}
+                        {% if form.full_name.errors %}
+                            <p class="text-red-500 text-sm mt-1">{{ form.full_name.errors[0] }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        {{ form.student_contact.label(class="block text-sm font-medium text-gray-700 mb-1") }}
+                        {{ form.student_contact(class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500") }}
+                    </div>
+                    
+                    <div>
+                        {{ form.student_cnic.label(class="block text-sm font-medium text-gray-700 mb-1") }}
+                        {{ form.student_cnic(class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500", placeholder="XXXXX-XXXXXXX-X") }}
+                    </div>
+                </div>
+                
+                <!-- Father Information -->
+                <div class="space-y-4">
+                    <h4 class="text-lg font-semibold text-gray-900 border-b pb-2">Father Information</h4>
+                    
+                    <div>
+                        {{ form.father_name.label(class="block text-sm font-medium text-gray-700 mb-1") }}
+                        {{ form.father_name(class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500") }}
+                        {% if form.father_name.errors %}
+                            <p class="text-red-500 text-sm mt-1">{{ form.father_name.errors[0] }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        {{ form.father_contact.label(class="block text-sm font-medium text-gray-700 mb-1") }}
+                        {{ form.father_contact(class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500") }}
+                    </div>
+                    
+                    <div>
+                        {{ form.father_cnic.label(class="block text-sm font-medium text-gray-700 mb-1") }}
+                        {{ form.father_cnic(class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500", placeholder="XXXXX-XXXXXXX-X") }}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Address -->
+            <div>
+                {{ form.address.label(class="block text-sm font-medium text-gray-700 mb-1") }}
+                {{ form.address(class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500", rows="3") }}
+            </div>
+            
+            <!-- Course and Fee Information -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    {{ form.category_id.label(class="block text-sm font-medium text-gray-700 mb-1") }}
+                    {{ form.category_id(class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500") }}
+                    {% if form.category_id.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.category_id.errors[0] }}</p>
+                    {% endif %}
+                </div>
+                
+                <div>
+                    {{ form.total_fee.label(class="block text-sm font-medium text-gray-700 mb-1") }}
+                    {{ form.total_fee(class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500", id="total_fee") }}
+                    {% if form.total_fee.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.total_fee.errors[0] }}</p>
+                    {% endif %}
+                </div>
+                
+                <div>
+                    {{ form.advance_payment.label(class="block text-sm font-medium text-gray-700 mb-1") }}
+                    {{ form.advance_payment(class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500", id="advance_payment") }}
+                    {% if form.advance_payment.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.advance_payment.errors[0] }}</p>
+                    {% endif %}
+                    <p class="text-sm text-gray-500 mt-1">Optional upfront payment</p>
+                </div>
+            </div>
+            
+            <!-- Fee Calculation Display -->
+            <div class="bg-gray-50 p-4 rounded-md">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                    <div>
+                        <p class="text-gray-700">
+                            <strong>Total Fee:</strong><br>
+                            <span id="display_total_fee" class="text-blue-600 font-semibold">Rs. 0.00</span>
+                        </p>
+                    </div>
+                    <div>
+                        <p class="text-gray-700">
+                            <strong>Advance Payment:</strong><br>
+                            <span id="display_advance" class="text-green-600 font-semibold">Rs. 0.00</span>
+                        </p>
+                    </div>
+                    <div>
+                        <p class="text-gray-700">
+                            <strong>Remaining Balance:</strong><br>
+                            <span id="remaining_balance" class="text-orange-600 font-semibold">Rs. 0.00</span>
+                        </p>
+                    </div>
+                </div>
+                <div class="mt-3 pt-3 border-t">
+                    <p class="text-gray-700">
+                        <strong>Monthly Installment:</strong> 
+                        <span id="monthly_installment" class="text-purple-600 font-semibold">Rs. 0.00</span>
+                        <small class="text-gray-500 ml-2">(Remaining Balance ÷ 6 months)</small>
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Buttons -->
+            <div class="flex justify-end space-x-4 pt-6 border-t">
+                <a href="{{ url_for('students') }}" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+                    Cancel
+                </a>
+                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                    Save Student
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function calculateFees() {
+    const totalFee = parseFloat(document.getElementById('total_fee').value) || 0;
+    const advancePayment = parseFloat(document.getElementById('advance_payment').value) || 0;
+    
+    const remainingBalance = totalFee - advancePayment;
+    const monthlyInstallment = remainingBalance / 6;
+    
+    document.getElementById('display_total_fee').textContent = 'Rs. ' + totalFee.toFixed(2);
+    document.getElementById('display_advance').textContent = 'Rs. ' + advancePayment.toFixed(2);
+    document.getElementById('remaining_balance').textContent = 'Rs. ' + remainingBalance.toFixed(2);
+    document.getElementById('monthly_installment').textContent = 'Rs. ' + monthlyInstallment.toFixed(2);
+}
+
+document.getElementById('total_fee').addEventListener('input', calculateFees);
+document.getElementById('advance_payment').addEventListener('input', calculateFees);
+
+// Calculate on page load if editing
+window.addEventListener('load', function() {
+    calculateFees();
+});
+</script>
+{% endblock %}
